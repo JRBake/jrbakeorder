@@ -1,0 +1,290 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f3ee;
+  margin: 0;
+  padding: 40px 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.section {
+  margin-bottom: 35px;
+}
+
+label {
+  display: block;
+  margin-bottom: 18px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.inventory-name {
+  flex: 1;
+}
+
+.quantity-input {
+  width: 80px;
+  padding: 8px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: #6f4e37;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.hidden {
+  display: none;
+}
+
+#successMessage {
+  margin-top: 20px;
+  padding: 15px;
+  background: #dff0d8;
+  color: #3c763d;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stock {
+  color: #777;
+  font-size: 14px;
+}
+
+.order-total {
+  font-size: 24px;
+  text-align: right;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.quantity-input.zero {
+  border: 2px solid red;
+  background: #ffe5e5;
+  color: red;
+}
+
+.cart-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-plus,
+.qty-minus {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #6f4e37;
+  color: white;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.qty-plus:hover,
+.qty-minus:hover {
+  opacity: 0.85;
+}
+
+.quantity-input {
+  width: 50px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Chrome, Safari, Edge */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.quantity-input {
+  -moz-appearance: textfield;
+}
+
+.item-subtotal {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6f4e37;
+  font-weight: 600;
+}
+
+/* Container for the small thumbnail */
+.image-wrapper {
+    width: 5em;
+    height: 5em;
+    min-width: 5em; /* Prevents shrinking in flex layouts */
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+/* The image inside the square */
+.product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This is key for 3em squares */
+    display: block;
+}
+
+/* Container for spacing */
+.form-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #4a3f35; /* Bakery-themed dark brown */
+}
+
+/* Styling the Dropdown and Textarea */
+select,
+textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1dbd6;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #333;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+/* Customizing the Textarea specific behavior */
+textarea {
+    resize: vertical; /* Allows user to pull it down, but not sideways */
+    min-height: 80px;
+}
+
+/* Focus state: When the user clicks in */
+select:focus,
+textarea:focus {
+    border-color: #d4a373; /* Warm golden-brown focus color */
+    box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.2);
+}
+
+/* Making the slicing section match the vibe */
+#slicingSection {
+    background-color: #fdfaf7;
+    border: 2px dashed #d4a373;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+/* Hide the checkbox visually but keep it functional for the code */
+.hidden-checkbox {
+    display: none;
+}
+
+.inventory-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-radius: 8px; /* Smooth corners for the highlight */
+    margin-bottom: 5px;
+}
+
+/* The Gray Highlight Effect */
+.inventory-item.selected {
+    background-color: #f2f2f2; /* Light gray background */
+    border-left: 5px solid #d4a373; /* Optional: adds a warm bakery-brown accent strip */
+}
+
+/* Ensure the text and subtotal stay legible */
+.inventory-item.selected .inventory-name strong {
+    color: #000;
+}
+
+.inventory-item.selected .item-subtotal {
+    font-weight: bold;
+    color: #d4a373;
+}
+
+.quantity-input {
+    width: 45px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 1rem;
+    background-color: white; /* Make it clear it's an input */
+}
+
+/* Remove the little spin arrows that browsers add to number inputs */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.item-description {
+    font-style: italic;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: #5a5a5a;
+}
+
+.inventory-details {
+    flex-grow: 1;
+    padding: 0 15px;
+}
