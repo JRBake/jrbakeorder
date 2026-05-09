@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://jrbakeorder-645749447527.us-east1.run.app';
 
 const inventoryList = document.getElementById('inventoryList');
 const orderForm = document.getElementById('orderForm');
