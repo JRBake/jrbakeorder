@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // --- GOOGLE API SETUP ---
 const oauth2Client = new google.auth.OAuth2(
