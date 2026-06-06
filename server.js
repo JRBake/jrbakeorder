@@ -121,25 +121,38 @@ app.post('/order', async (req, res) => {
         });
         const invData = invRes.data.values || [];
 
-        let grandTotal = 0;
-        const breadQuantities = new Array(invData.length).fill("");
+let grandTotal = 0;
+const breadQuantities = new Array(invData.length).fill("");
+let receiptRowsHtml = ""; // 1. Create a variable to hold our rows
 
-        // Update Inventory in Sheets & Calculate Total
-        for (const orderedItem of items) {
-            const idx = invData.findIndex(r => r[0] === orderedItem.item);
-            if (idx !== -1) {
-                breadQuantities[idx] = orderedItem.quantity;
-                grandTotal += (orderedItem.price * orderedItem.quantity);
+// Update Inventory in Sheets & Calculate Total
+for (const orderedItem of items) {
+    const idx = invData.findIndex(r => r[0] === orderedItem.item);
+    if (idx !== -1) {
+        breadQuantities[idx] = orderedItem.quantity;
 
-                const newStock = Number(invData[idx][1]) - orderedItem.quantity;
-                await sheets.spreadsheets.values.update({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: `${INVENTORY_SHEET}!B${idx + 2}`,
-                    valueInputOption: 'USER_ENTERED',
-                    requestBody: { values: [[newStock]] }
-                });
-            }
-        }
+        const itemTotal = orderedItem.price * orderedItem.quantity;
+        grandTotal += itemTotal;
+
+        // 2. Build the HTML row for this specific item
+        receiptRowsHtml += `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px;">${orderedItem.item}</td>
+                <td style="padding: 8px; text-align: center;">${orderedItem.quantity}</td>
+                <td style="padding: 8px; text-align: right;">$${orderedItem.price.toFixed(2)}</td>
+                <td style="padding: 8px; text-align: right;">$${itemTotal.toFixed(2)}</td>
+            </tr>
+        `;
+
+        const newStock = Number(invData[idx][1]) - orderedItem.quantity;
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${INVENTORY_SHEET}!B${idx + 2}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [[newStock]] }
+        });
+    }
+}
 
         // --- PREPARE EMAIL FROM TEMPLATE FILE ---
         let emailStatus = "SENT";
@@ -151,6 +164,7 @@ app.post('/order', async (req, res) => {
             htmlContent = htmlContent
                 .replace(/{{firstName}}/g, firstName)
                 .replace(/{{orderNumber}}/g, orderNumber)
+                .replace(/{{itemizedReceipt}}/g, receiptRowsHtml)
                 .replace(/{{total}}/g, grandTotal.toFixed(2))
                 .replace(/{{payment}}/g, payment)
                 .replace(/{{slicing}}/g, slicing)
@@ -197,6 +211,12 @@ app.post('/order', async (req, res) => {
         console.error('Order Error:', err.message);
         res.status(500).json({ error: 'Server failed to process order' });
     }
+});
+
+app.get('/oauth2callback', async (req, res) => {
+    const { code } = req.query; // This is the "key" Google sends back
+    // ... logic to save the token ...
+    res.redirect('/'); // Send the user back to the bakery home page
 });
 
 const port = process.env.PORT || 8080;
