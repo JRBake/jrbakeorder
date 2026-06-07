@@ -115,7 +115,7 @@ app.post('/order', async (req, res) => {
         const orderNumber = `${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
 
         // --- FETCH STOCK FOR UPDATES ---
-        cconst [invRes, pickupRes] = await Promise.all([
+        const [invRes, pickupRes] = await Promise.all([
     sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: `${INVENTORY_SHEET}!A2:B`
