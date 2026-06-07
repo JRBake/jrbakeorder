@@ -115,11 +115,23 @@ app.post('/order', async (req, res) => {
         const orderNumber = `${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
 
         // --- FETCH STOCK FOR UPDATES ---
-        const invRes = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${INVENTORY_SHEET}!A2:B`
-        });
-        const invData = invRes.data.values || [];
+        cconst [invRes, pickupRes] = await Promise.all([
+    sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${INVENTORY_SHEET}!A2:B`
+    }),
+    sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${INVENTORY_SHEET}!F2:F3` // F2 is Date, F3 is Hours
+    })
+]);
+
+const invData = invRes.data.values || [];
+const pickupRows = pickupRes.data.values || [];
+
+// Extract the plain text strings safely
+const pickupDateText = pickupRows[0] ? pickupRows[0][0] : "To Be Scheduled";
+const pickupHoursText = pickupRows[1] ? pickupRows[1][0] : "";
 
 let grandTotal = 0;
 const breadQuantities = new Array(invData.length).fill("");
