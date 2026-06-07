@@ -122,7 +122,7 @@ app.post('/order', async (req, res) => {
     }),
     sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${INVENTORY_SHEET}!F2:F3` // F2 is Date, F3 is Hours
+        range: `${INVENTORY_SHEET}!F2:F4`
     })
 ]);
 
@@ -132,6 +132,7 @@ const pickupRows = pickupRes.data.values || [];
 // Extract the plain text strings safely
 const pickupDateText = pickupRows[0] ? pickupRows[0][0] : "To Be Scheduled";
 const pickupHoursText = pickupRows[1] ? pickupRows[1][0] : "";
+const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
 
 let grandTotal = 0;
 const breadQuantities = new Array(invData.length).fill("");
@@ -178,6 +179,8 @@ for (const orderedItem of items) {
                 .replace(/{{orderNumber}}/g, orderNumber)
                 .replace(/{{itemizedReceipt}}/g, receiptRowsHtml)
                 .replace(/{{total}}/g, grandTotal.toFixed(2))
+                .replace(/{{pickupDate}}/g, pickupDateText)
+                .replace(/{{pickupHours}}/g, pickupHoursText)
                 .replace(/{{payment}}/g, payment)
                 .replace(/{{slicing}}/g, slicing)
                 .replace(/{{notes}}/g, notes || "None");
