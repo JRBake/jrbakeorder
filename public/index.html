@@ -10,7 +10,7 @@
 
 <body>
   <div class="container">
-    <h1>Joyride Baking Orders</h1>
+    <img width="600px" src="/jrb-text.png" alt="Joyride Baking Co." style="display:block; margin:auto; width:100%;"/>
     <div id="soldOutMessage" class="hidden" style="text-align: center; padding: 40px 20px;">
       <h2 style="color: #8b5e3c;">We're currently sold out!</h2>
       <p>Our ovens are resting. Please check back soon for our next bake.</p>
@@ -19,9 +19,10 @@
     <form id="orderForm">
       <!-- CUSTOMER INFO -->
       <div class="section">
-        <h2>Customer Information</h2>
-        <label>First Name<input type="text" id="firstName" placeholder="First Name" required></label>
-        <label>Last Name<input type="text" id="lastName" placeholder="Last Name" required></label>
+        <h2>Your Information</h2>
+        <div style="display: flex; flex-direction: row; gap: 15px; width: 100%;}">
+        <label style="flex:1">First Name<input type="text" id="firstName" placeholder="First Name" required></label>
+        <label style="flex:1">Last Name<input type="text" id="lastName" placeholder="Last Name" required></label></div>
         <label>
           Email
           <input type="email" id="email" required />
@@ -35,7 +36,7 @@
 
       <!-- INVENTORY -->
       <div class="section">
-        <h2>Available Bread</h2>
+        <h2>This Week's Menu</h2>
         <div id="inventoryList">
           Loading inventory...
         </div>
@@ -46,10 +47,10 @@
         <p><strong>Would you like your loaves sliced?</strong></p>
         <label><input type="radio" name="slicing" value="No" checked> No, leave them whole.</label>
         <label><input type="radio" name="slicing" value="Yes"> Yes, please!</label>
-        <p>Slices are 1/2 inch thick.
-Staple loaves are typically 14 slices + ends
-Sandwich-style loaves are typically 17 slices + ends
-If you request slicing but do not want all loaves in your order sliced, please specify in the Notes below.</p>
+        <p><em>Slices are 1/2 inch thick.<br>
+Staple loaves are typically 14 slices + ends<br>
+Sandwich-style loaves are typically 17 slices + ends<br>
+If you request slicing but do not want all loaves in your order sliced, please specify in the Notes below.</em></p>
       </div>
 
       <div class="form-group">
@@ -59,6 +60,7 @@ If you request slicing but do not want all loaves in your order sliced, please s
           <option value="Venmo">Venmo</option>
           <option value="Cashapp">Cashapp</option>
         </select>
+        <p><i>Links for online payment processors will be found in your confirmation email.</i></p>
       </div>
 
       <div class="form-group">
@@ -68,7 +70,7 @@ If you request slicing but do not want all loaves in your order sliced, please s
 
       <!-- SUBMIT -->
 
-      <button type="submit">
+      <button type="submit" style="padding:14px;">
         Submit Order
       </button>
     </form>
