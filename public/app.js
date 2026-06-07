@@ -216,6 +216,7 @@ orderForm.onsubmit = async (e) => {
             if (checkbox.dataset.category === "Loaf") {
                 containsLoaf = true;
             }
+        }
     });
 
     const slicingPref = document.querySelector('input[name="slicing"]:checked')?.value || "No";
