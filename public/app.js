@@ -173,11 +173,12 @@ function updateUI() {
         }
 
         const price = parseFloat(checkbox.dataset.price);
-        if (checkbox.checked && (checkbox.dataset.category === "Loaf" || checkbox.dataset.item.toLowerCase().includes('sourdough'))) {
+        // Strictly check for the 'Loaf' category only
+        if (checkbox.checked && checkbox.dataset.category === "Loaf") {
             hasLoaf = true;
         }
 
-        const subtotal = qty * price;
+const subtotal = qty * price;
         itemDiv.querySelector('.item-subtotal').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
         total += subtotal;
     });
@@ -211,10 +212,10 @@ orderForm.onsubmit = async (e) => {
                 quantity: qty,
                 price: parseFloat(checkbox.dataset.price)
             });
-            if (checkbox.dataset.category === "Loaf" || checkbox.dataset.item.toLowerCase().includes('sourdough')) {
+            // Strictly check for the 'Loaf' category only
+            if (checkbox.dataset.category === "Loaf") {
                 containsLoaf = true;
             }
-        }
     });
 
     const slicingPref = document.querySelector('input[name="slicing"]:checked')?.value || "No";
