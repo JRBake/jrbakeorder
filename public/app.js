@@ -254,7 +254,7 @@ orderForm.onsubmit = async (e) => {
         submitBtn.style.color = "white";
 
         successMessage.classList.remove('hidden');
-        successMessage.innerHTML = `🍞 Order Success! Order #: <strong>${result.orderNumber}</strong>`;
+        successMessage.innerHTML = `🍞 Order Success! Order #: <strong>${result.orderNumber}</strong><br>Please check your email for your receipt and to pay with online payment processors.`;
         orderForm.reset();
         loadInventory();
 
