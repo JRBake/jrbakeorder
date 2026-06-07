@@ -68,7 +68,10 @@ if (pickupData && pickupData.template) {
             if (orderForm) orderForm.style.display = 'none';
             if (orderTotalEl) orderTotalEl.style.display = 'none';
             if (slicingSection) slicingSection.style.display = 'none';
-
+            if (pickupDiv) {
+                pickupDiv.classList.add('hidden');
+                pickupDiv.style.display = 'none';
+            }
             console.log("Bakery is sold out. Pickup info remains visible.");
         } else {
             // --- ACTIVE STORE STATE ---
@@ -78,6 +81,10 @@ if (pickupData && pickupData.template) {
             }
             if (orderForm) orderForm.style.display = 'block';
             if (orderTotalEl) orderTotalEl.style.display = 'block';
+            if (pickupData && pickupData.template && pickupDiv) {
+                pickupDiv.classList.remove('hidden');
+                pickupDiv.style.display = 'block';
+             }
 
             // Render the items
             availableItems.forEach(item => {
