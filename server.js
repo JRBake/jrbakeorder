@@ -216,7 +216,7 @@ for (const orderedItem of items) {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${ORDERS_SHEET}!A:Z`,
+            range: `${ORDERS_SHEET}!A:A`,
             valueInputOption: 'USER_ENTERED',
             requestBody: { values: [orderRow] }
         });
