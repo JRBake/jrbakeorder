@@ -181,6 +181,7 @@ for (const orderedItem of items) {
                 .replace(/{{total}}/g, grandTotal.toFixed(2))
                 .replace(/{{pickupDate}}/g, pickupDateText)
                 .replace(/{{pickupHours}}/g, pickupHoursText)
+                .replace(/{{pickupAfterHours}}/g, pickupAfterHoursText)
                 .replace(/{{payment}}/g, payment)
                 .replace(/{{slicing}}/g, slicing)
                 .replace(/{{notes}}/g, notes || "None");
