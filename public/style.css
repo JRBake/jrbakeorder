@@ -179,6 +179,17 @@ button:hover {
     display: block;
 }
 
+/* Grays out the item container card slightly when out of stock */
+.sold-out-item {
+    background-color: #fafafa;
+    border-color: #e0e0e0;
+    pointer-events: none; /* Disables clicking elements on the card */
+}
+/* Keeps layout structurally stable without subtotal lines */
+.sold-out-item .item-subtotal {
+    visibility: hidden;
+}
+
 /* Container for spacing */
 .form-group {
     margin-bottom: 1.5rem;
