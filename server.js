@@ -134,38 +134,69 @@ const pickupDateText = pickupRows[0] ? pickupRows[0][0] : "To Be Scheduled";
 const pickupHoursText = pickupRows[1] ? pickupRows[1][0] : "";
 const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
 
-let grandTotal = 0;
-const breadQuantities = new Array(invData.length).fill("");
-let receiptRowsHtml = ""; // 1. Create a variable to hold our rows
+// ==========================================================
+        // NEW STEP 1: VALIDATE INVENTORY BEFORE CHANGING ANYTHING
+        // ==========================================================
+        const stockShortages = [];
 
-// Update Inventory in Sheets & Calculate Total
-for (const orderedItem of items) {
-    const idx = invData.findIndex(r => r[0] === orderedItem.item);
-    if (idx !== -1) {
-        breadQuantities[idx] = orderedItem.quantity;
+        for (const orderedItem of items) {
+            const idx = invData.findIndex(r => r[0] === orderedItem.item);
+            if (idx !== -1) {
+                const currentStock = Number(invData[idx][1]);
+                // If they asked for more than we have, log the shortage
+                if (orderedItem.quantity > currentStock) {
+                    stockShortages.push({
+                        item: orderedItem.item,
+                        requested: orderedItem.quantity,
+                        available: currentStock
+                    });
+                }
+            }
+        }
 
-        const itemTotal = orderedItem.price * orderedItem.quantity;
-        grandTotal += itemTotal;
+        // If ANY shortages were found, stop completely and tell the frontend
+        if (stockShortages.length > 0) {
+            return res.status(409).json({
+                error: "STOCK_SHORTAGE",
+                shortages: stockShortages
+            });
+        }
 
-        // 2. Build the HTML row for this specific item
-        receiptRowsHtml += `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 8px;">${orderedItem.item}</td>
-                <td style="padding: 8px; text-align: center;">${orderedItem.quantity}</td>
-                <td style="padding: 8px; text-align: right;">$${orderedItem.price.toFixed(2)}</td>
-                <td style="padding: 8px; text-align: right;">$${itemTotal.toFixed(2)}</td>
-            </tr>
-        `;
+        // ==========================================================
+        // STEP 2: IF WE REACH THIS POINT, STOCK IS SAFE. PROCEED.
+        // ==========================================================
+        let grandTotal = 0;
+        const breadQuantities = new Array(invData.length).fill("");
+        let receiptRowsHtml = ""; // 1. Create a variable to hold our rows
 
-        const newStock = Number(invData[idx][1]) - orderedItem.quantity;
-        await sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${INVENTORY_SHEET}!B${idx + 2}`,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: { values: [[newStock]] }
-        });
-    }
-}
+        // Update Inventory in Sheets & Calculate Total
+        for (const orderedItem of items) {
+            const idx = invData.findIndex(r => r[0] === orderedItem.item);
+            if (idx !== -1) {
+                breadQuantities[idx] = orderedItem.quantity;
+
+                const itemTotal = orderedItem.price * orderedItem.quantity;
+                grandTotal += itemTotal;
+
+                // 2. Build the HTML row for this specific item
+                receiptRowsHtml += `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">${orderedItem.item}</td>
+                        <td style="padding: 8px; text-align: center;">${orderedItem.quantity}</td>
+                        <td style="padding: 8px; text-align: right;">$${orderedItem.price.toFixed(2)}</td>
+                        <td style="padding: 8px; text-align: right;">$${itemTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+
+                const newStock = Number(invData[idx][1]) - orderedItem.quantity;
+                await sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: `${INVENTORY_SHEET}!B${idx + 2}`,
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: { values: [[newStock]] }
+                });
+            }
+        }
 
         // --- PREPARE EMAIL FROM TEMPLATE FILE ---
         let emailStatus = "SENT";
