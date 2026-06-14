@@ -52,8 +52,6 @@ if (pickupData && pickupData.template) {
         pickupDiv.style.display = 'block';
     }
 }
-const isOpen = data.isOpen ?? true; // Default to open if missing
-        }
 
     } catch (error) {
         console.error("Load Inventory Error:", error);
