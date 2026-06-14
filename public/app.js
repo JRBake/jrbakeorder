@@ -28,26 +28,25 @@ async function loadInventory() {
         const pickupData = data.pickup || null;
         const isOpen = data.isOpen ?? true; // Default to open if missing
 
-        // 1. ALWAYS SHOW PICKUP INFO (if it exists)
-        // We define these inside the function to ensure we grab them every refresh
+        // Define these inside the function to ensure we grab them every refresh
         const pickupDiv = document.getElementById('pickupInfo');
         const pickupText = document.getElementById('pickupText');
         const soldOutMessage = document.getElementById('soldOutMessage');
 
-if (pickupData && pickupData.template) {
-    let message = pickupData.template;
+        if (pickupData && pickupData.template) {
+            let message = pickupData.template;
 
-    // Replace the placeholders with the real data
-    // We use a global regex /.../g so it replaces every instance found
-    message = message.replace(/{DATE}/g, `<strong>${pickupData.date || 'TBD'}</strong>`);
-    message = message.replace(/{REGULARHOURS}/g, `<strong>${pickupData.hours || 'TBD'}</strong>`);
-    message = message.replace(/{AFTERHOURS}/g, `<strong>${pickupData.afterHours || 'TBD'}</strong>`);
+            // Replace the placeholders with the real data
+            message = message.replace(/{DATE}/g, `<strong>${pickupData.date || 'TBD'}</strong>`);
+            message = message.replace(/{REGULARHOURS}/g, `<strong>${pickupData.hours || 'TBD'}</strong>`);
+            message = message.replace(/{AFTERHOURS}/g, `<strong>${pickupData.afterHours || 'TBD'}</strong>`);
 
-    if (pickupText) {
-        pickupText.innerHTML = message;
-    }
+            if (pickupText) {
+                pickupText.innerHTML = message;
+            }
+        } // 👈 FIXED: Added this missing closing bracket to close the pickup template wrapper!
 
-// --- MASTER TOGGLE CONTROL (F6) ---
+        // --- MASTER TOGGLE CONTROL (F6) ---
         if (!isOpen) {
             // If F6 is "No", hide everything and show the master closed/sold out screen
             if (soldOutMessage) {
@@ -138,6 +137,9 @@ function setupCartEventListeners() {
         const qtyInput = itemDiv.querySelector('.quantity-input');
         const max = parseInt(checkbox.dataset.stock);
 
+        // 👇 FIXED: If an item is sold out, skip tying dynamic click listeners to its buttons
+        if (max <= 0) return;
+
         itemDiv.querySelector('.qty-plus').onclick = () => {
             let val = parseInt(qtyInput.value) || 0;
             if (val < max) {
@@ -187,7 +189,7 @@ function updateUI() {
             hasLoaf = true;
         }
 
-const subtotal = qty * price;
+        const subtotal = qty * price;
         // Only render subtotals for items currently active/purchasable
         if (itemDiv.querySelector('.item-subtotal') && parseInt(checkbox.dataset.stock) > 0) {
             itemDiv.querySelector('.item-subtotal').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
@@ -244,7 +246,7 @@ orderForm.onsubmit = async (e) => {
         notes: document.getElementById('orderNotes').value || "None"
     };
 
-try {
+    try {
         const response = await fetch(`${API_BASE}/order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
