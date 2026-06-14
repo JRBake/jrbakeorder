@@ -8,6 +8,7 @@ const orderTotalEl = document.getElementById('orderTotal');
 const slicingSection = document.getElementById('slicingSection');
 const pickupDiv = document.getElementById('pickupInfo');
 const pickupText = document.getElementById('pickupText');
+const errorMessage = document.getElementById('errorMessage');
 
 // 1. PHONE MASKING
 phoneInput.addEventListener('input', (e) => {
@@ -248,14 +249,16 @@ try {
 
         const result = await response.json();
 
-        // 👇 DETECT STOCK SHORTAGES FROM OTHER USERS
+        // DETECT STOCK SHORTAGES FROM OTHER USERS
         if (response.status === 409 && result.error === "STOCK_SHORTAGE") {
             submitBtn.disabled = false;
             submitBtn.innerText = "Place Order";
 
-            // Re-enable editing and update numbers
+            // Build a clean, inline HTML message listing the changes
+            let errorHtml = `<strong>⚠️ Inventory Update!</strong><br>Someone just snatched up some of those items! We've updated your cart with what we have left:<br><ul style="margin-top: 10px; margin-bottom: 10px; padding-left: 20px;">`;
+
+            // Update the UI numbers to match reality
             for (const shortage of result.shortages) {
-                // Find the inventory item row in the DOM
                 const itemDiv = Array.from(document.querySelectorAll('.inventory-item'))
                     .find(div => div.querySelector('.item-checkbox').dataset.item === shortage.item);
 
@@ -263,18 +266,25 @@ try {
                     const checkbox = itemDiv.querySelector('.item-checkbox');
                     const qtyInput = itemDiv.querySelector('.quantity-input');
 
-                    // Force down the input values and internal limits to reality
                     checkbox.dataset.stock = shortage.available;
                     qtyInput.value = shortage.available;
 
-                    // Inform the baker/buyer
-                    alert(`Oh no, our stock is lower than the number of items you ordered for ${shortage.item}! The number above has been updated with what we have left. Would you like to continue ordering ${shortage.available} of ${shortage.item}?`);
+                    // Add this specific item to our red warning box list
+                    errorHtml += `<li><strong>${shortage.item}:</strong> Only ${shortage.available} left</li>`;
                 }
             }
 
-            // Refresh subtotals and enabling/disabling of items based on new limits
+            errorHtml += `</ul>Please review your updated quantities and click 'Place Order' again if you'd like to proceed.`;
+
+            // Display the red warning box
+            if (errorMessage) {
+                errorMessage.innerHTML = errorHtml;
+                errorMessage.classList.remove('hidden');
+                errorMessage.style.display = 'block';
+            }
+
             updateUI();
-            return; // Stop execution here so they can review and click submit again
+            return; // Stop here so they can review
         }
 
         if (!response.ok) throw new Error(result.error || 'Submission failed');
