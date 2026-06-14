@@ -52,7 +52,7 @@ app.get('/inventory', async (req, res) => {
         const [masterRes, stockRes, pickupRes] = await Promise.all([
             sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `${MASTER_SHEET}!A2:E` }),
             sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `${INVENTORY_SHEET}!A2:B` }),
-            sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `${INVENTORY_SHEET}!F2:F5` })
+            sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `${INVENTORY_SHEET}!F2:F6` })
         ]);
 
         const masterRows = masterRes.data.values || [];
@@ -94,8 +94,11 @@ app.get('/inventory', async (req, res) => {
             template: pickupRows[3] ? pickupRows[3][0] : ""
         };
 
+        const openStatusString = pickupRows[4] ? pickupRows[4][0] : "No";
+        const isOpen = openStatusString.trim().toLowerCase() === "yes";
+
         // Send combined object
-        res.json({ inventory, pickup });
+        res.json({ inventory, pickup, isOpen });
 
     } catch (err) {
         console.error('Inventory Sync Error:', err.message);
