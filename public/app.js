@@ -26,6 +26,7 @@ async function loadInventory() {
 
         const itemsToRender = data.inventory || (Array.isArray(data) ? data : []);
         const pickupData = data.pickup || null;
+        const isOpen = data.isOpen ?? true; // Default to open if missing
 
         // 1. ALWAYS SHOW PICKUP INFO (if it exists)
         // We define these inside the function to ensure we grab them every refresh
@@ -50,78 +51,8 @@ if (pickupData && pickupData.template) {
         pickupDiv.classList.remove('hidden');
         pickupDiv.style.display = 'block';
     }
-} else {
-    // Fallback if F5 is empty
-    if (pickupText) pickupText.innerText = "Check back soon for pickup details!";
 }
-
-        // 2. FILTER FOR STOCK
-        inventoryList.innerHTML = '';
-        const availableItems = itemsToRender.filter(item => item.stock > 0);
-
-        // 3. TOGGLE "SOLD OUT" vs "ORDER FORM"
-        if (availableItems.length === 0) {
-            // --- SOLD OUT STATE ---
-            if (soldOutMessage) {
-                soldOutMessage.classList.remove('hidden');
-                soldOutMessage.style.display = 'block';
-            }
-            if (orderForm) orderForm.style.display = 'none';
-            if (orderTotalEl) orderTotalEl.style.display = 'none';
-            if (slicingSection) slicingSection.style.display = 'none';
-            if (pickupDiv) {
-                pickupDiv.classList.add('hidden');
-                pickupDiv.style.display = 'none';
-            }
-            console.log("Bakery is sold out. Pickup info remains visible.");
-        } else {
-            // --- ACTIVE STORE STATE ---
-            if (soldOutMessage) {
-                soldOutMessage.classList.add('hidden');
-                soldOutMessage.style.display = 'none';
-            }
-            if (orderForm) orderForm.style.display = 'block';
-            if (orderTotalEl) orderTotalEl.style.display = 'block';
-            if (pickupData && pickupData.template && pickupDiv) {
-                pickupDiv.classList.remove('hidden');
-                pickupDiv.style.display = 'block';
-             }
-
-            // Render the items
-            availableItems.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'inventory-item';
-                div.innerHTML = `
-                    <input type="checkbox" class="item-checkbox hidden-checkbox"
-                        data-item="${item.item}"
-                        data-price="${item.price}"
-                        data-stock="${item.stock}"
-                        data-category="${item.category}"/>
-
-                    <div class="image-wrapper"><img src="${item.image}" class="product-img"></div>
-
-                    <div class="inventory-details">
-                        <div class="inventory-name">
-                            <strong>${item.item}</strong>
-                            <div>$${Number(item.price).toFixed(2)}</div>
-                        </div>
-                        <p class="item-description" style="font-size: 0.9em; color: #666; margin: 5px 0;">
-                            ${item.description || ''}
-                        </p>
-                        <div class="item-subtotal">Subtotal: $0.00</div>
-                    </div>
-
-                    <div class="cart-controls">
-                        <button type="button" class="qty-minus">−</button>
-                        <input type="number" class="quantity-input" value="0" min="0" />
-                        <button type="button" class="qty-plus">+</button>
-                    </div>
-                `;
-                inventoryList.appendChild(div);
-            });
-
-            setupCartEventListeners();
-            updateUI();
+const isOpen = data.isOpen ?? true; // Default to open if missing
         }
 
     } catch (error) {
