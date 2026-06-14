@@ -239,7 +239,7 @@ orderForm.onsubmit = async (e) => {
         notes: document.getElementById('orderNotes').value || "None"
     };
 
-    try {
+try {
         const response = await fetch(`${API_BASE}/order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -247,6 +247,36 @@ orderForm.onsubmit = async (e) => {
         });
 
         const result = await response.json();
+
+        // 👇 DETECT STOCK SHORTAGES FROM OTHER USERS
+        if (response.status === 409 && result.error === "STOCK_SHORTAGE") {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Place Order";
+
+            // Re-enable editing and update numbers
+            for (const shortage of result.shortages) {
+                // Find the inventory item row in the DOM
+                const itemDiv = Array.from(document.querySelectorAll('.inventory-item'))
+                    .find(div => div.querySelector('.item-checkbox').dataset.item === shortage.item);
+
+                if (itemDiv) {
+                    const checkbox = itemDiv.querySelector('.item-checkbox');
+                    const qtyInput = itemDiv.querySelector('.quantity-input');
+
+                    // Force down the input values and internal limits to reality
+                    checkbox.dataset.stock = shortage.available;
+                    qtyInput.value = shortage.available;
+
+                    // Inform the baker/buyer
+                    alert(`Oh no, our stock is lower than the number of items you ordered for ${shortage.item}! The number above has been updated with what we have left. Would you like to continue ordering ${shortage.available} of ${shortage.item}?`);
+                }
+            }
+
+            // Refresh subtotals and enabling/disabling of items based on new limits
+            updateUI();
+            return; // Stop execution here so they can review and click submit again
+        }
+
         if (!response.ok) throw new Error(result.error || 'Submission failed');
 
         submitBtn.innerText = "Order Sent! 🍞";
