@@ -47,11 +47,83 @@ if (pickupData && pickupData.template) {
         pickupText.innerHTML = message;
     }
 
-    if (pickupDiv) {
-        pickupDiv.classList.remove('hidden');
-        pickupDiv.style.display = 'block';
-    }
-}
+// --- MASTER TOGGLE CONTROL (F6) ---
+        if (!isOpen) {
+            // If F6 is "No", hide everything and show the master closed/sold out screen
+            if (soldOutMessage) {
+                soldOutMessage.classList.remove('hidden');
+                soldOutMessage.style.display = 'block';
+            }
+            if (orderForm) orderForm.style.display = 'none';
+            if (orderTotalEl) orderTotalEl.style.display = 'none';
+            if (slicingSection) slicingSection.style.display = 'none';
+            if (pickupDiv) {
+                pickupDiv.classList.add('hidden');
+                pickupDiv.style.display = 'none';
+            }
+            return; // Exit early
+        }
+
+        // --- STORE IS OPEN (F6 is "Yes") ---
+        if (soldOutMessage) {
+            soldOutMessage.classList.add('hidden');
+            soldOutMessage.style.display = 'none';
+        }
+        if (orderForm) orderForm.style.display = 'block';
+        if (orderTotalEl) orderTotalEl.style.display = 'block';
+        if (pickupDiv) {
+            pickupDiv.classList.remove('hidden');
+            pickupDiv.style.display = 'block';
+        }
+
+        inventoryList.innerHTML = '';
+
+        // Render ALL items (even if stock is 0)
+        itemsToRender.forEach(item => {
+            const isSoldOut = item.stock <= 0;
+
+            // Swap out the regular price layout for a red SOLD OUT message when stock hits 0
+            const statusDisplayHtml = isSoldOut
+                ? `<div style="color: #c62828; font-weight: bold; font-size: 0.95em; text-transform: uppercase; margin-top: 2px;">● Sold Out</div>`
+                : `<div>$${Number(item.price).toFixed(2)}</div>`;
+
+            const div = document.createElement('div');
+            // Give it an extra class name if it is sold out so we can apply specific style rules
+            div.className = `inventory-item ${isSoldOut ? 'sold-out-item' : ''}`;
+
+            div.innerHTML = `
+                <input type="checkbox" class="item-checkbox hidden-checkbox"
+                    data-item="${item.item}"
+                    data-price="${item.price}"
+                    data-stock="${item.stock}"
+                    data-category="${item.category}"/>
+
+                <div class="image-wrapper" style="${isSoldOut ? 'opacity: 0.5; filter: grayscale(60%);' : ''}">
+                    <img src="${item.image}" class="product-img">
+                </div>
+
+                <div class="inventory-details" style="${isSoldOut ? 'color: #999;' : ''}">
+                    <div class="inventory-name">
+                        <strong>${item.item}</strong>
+                        ${statusDisplayHtml}
+                    </div>
+                    <p class="item-description" style="font-size: 0.9em; color: #666; margin: 5px 0;">
+                        ${item.description || ''}
+                    </p>
+                    <div class="item-subtotal">${isSoldOut ? '' : 'Subtotal: $0.00'}</div>
+                </div>
+
+                <div class="cart-controls">
+                    <button type="button" class="qty-minus" ${isSoldOut ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>−</button>
+                    <input type="number" class="quantity-input" value="0" min="0" ${isSoldOut ? 'disabled style="background: #eaeaea; color: #aaa; cursor: not-allowed;"' : ''} />
+                    <button type="button" class="qty-plus" ${isSoldOut ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>+</button>
+                </div>
+            `;
+            inventoryList.appendChild(div);
+        });
+
+        setupCartEventListeners();
+        updateUI();
 
     } catch (error) {
         console.error("Load Inventory Error:", error);
@@ -116,7 +188,10 @@ function updateUI() {
         }
 
 const subtotal = qty * price;
-        itemDiv.querySelector('.item-subtotal').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
+        // Only render subtotals for items currently active/purchasable
+        if (itemDiv.querySelector('.item-subtotal') && parseInt(checkbox.dataset.stock) > 0) {
+            itemDiv.querySelector('.item-subtotal').innerText = `Subtotal: $${subtotal.toFixed(2)}`;
+        }
         total += subtotal;
     });
 
