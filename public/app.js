@@ -293,6 +293,11 @@ try {
         submitBtn.style.backgroundColor = "#4CAF50";
         submitBtn.style.color = "white";
 
+        if (errorMessage) {
+            errorMessage.classList.add('hidden');
+            errorMessage.style.display = 'none';
+        }
+
         successMessage.classList.remove('hidden');
         successMessage.innerHTML = `🍞 Order Success! Order #: <strong>${result.orderNumber}</strong><br>Please check your email for your receipt and to pay with online payment processors.`;
         orderForm.reset();
