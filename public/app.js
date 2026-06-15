@@ -264,6 +264,7 @@ orderForm.onsubmit = async (e) => {
             let errorHtml = `<strong>⚠️ Inventory Update!</strong><br>Someone just snatched up some of those items! We've updated your cart with what we have left:<br><ul style="margin-top: 10px; margin-bottom: 10px; padding-left: 20px;">`;
 
             // Update the UI numbers to match reality
+            // Update the UI numbers to match reality
             for (const shortage of result.shortages) {
                 const itemDiv = Array.from(document.querySelectorAll('.inventory-item'))
                     .find(div => div.querySelector('.item-checkbox').dataset.item === shortage.item);
@@ -271,12 +272,53 @@ orderForm.onsubmit = async (e) => {
                 if (itemDiv) {
                     const checkbox = itemDiv.querySelector('.item-checkbox');
                     const qtyInput = itemDiv.querySelector('.quantity-input');
+                    const plusBtn = itemDiv.querySelector('.qty-plus');
+                    const minusBtn = itemDiv.querySelector('.qty-minus');
 
+                    // 1. Sync the core data attributes
                     checkbox.dataset.stock = shortage.available;
                     qtyInput.value = shortage.available;
 
-                    // Add this specific item to our red warning box list
-                    errorHtml += `<li><strong>${shortage.item}:</strong> Only ${shortage.available} left</li>`;
+                    // 2. CHECK IF NOW COMPLETELY SOLD OUT (0 LEFT)
+                    if (shortage.available <= 0) {
+                        // Add the gray-out CSS class dynamically
+                        itemDiv.classList.add('sold-out-item');
+                        
+                        // Disable input elements completely
+                        if (qtyInput) {
+                            qtyInput.disabled = true;
+                            qtyInput.style.background = '#eaeaea';
+                            qtyInput.style.color = '#aaa';
+                            qtyInput.style.cursor = 'not-allowed';
+                        }
+                        if (plusBtn) plusBtn.style.cssText = 'opacity: 0.3; cursor: not-allowed;';
+                        if (minusBtn) minusBtn.style.cssText = 'opacity: 0.3; cursor: not-allowed;';
+
+                        // Fade out the image wrapper
+                        const imgWrapper = itemDiv.querySelector('.image-wrapper');
+                        if (imgWrapper) {
+                            imgWrapper.style.opacity = '0.5';
+                            imgWrapper.style.filter = 'grayscale(60%)';
+                        }
+
+                        // Swap the price tag text out for the red "● Sold Out" label
+                        const nameDiv = itemDiv.querySelector('.inventory-name');
+                        if (nameDiv) {
+                            // Keeps the item title strong tag, drops the price element below it
+                            const strongTag = nameDiv.querySelector('strong');
+                            nameDiv.innerHTML = `<strong>${strongTag ? strongTag.innerText : shortage.item}</strong><div style="color: #c62828; font-weight: bold; font-size: 0.95em; text-transform: uppercase; margin-top: 2px;">● Sold Out</div>`;
+                        }
+
+                        // Hide the subtotal text element entirely
+                        const subtotalEl = itemDiv.querySelector('.item-subtotal');
+                        if (subtotalEl) subtotalEl.style.visibility = 'hidden';
+
+                        // Append to the red warning block layout text
+                        errorHtml += `<li><strong>${shortage.item}:</strong> Sorry, this item is now sold out!</li>`;
+                    } else {
+                        // If it didn't hit 0 but just dropped lower (e.g., asked for 3, only 1 left)
+                        errorHtml += `<li><strong>${shortage.item}:</strong> Only ${shortage.available} left</li>`;
+                    }
                 }
             }
 
