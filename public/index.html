@@ -15,7 +15,7 @@
     <img width="100px" src="https://raw.githubusercontent.com/JRBake/jrbakeorder/refs/heads/main/public/pictures/logo-small.png" alt="Joyride Logo" style="display:block; margin:auto;" />
     <img width="600px" src="https://raw.githubusercontent.com/JRBake/jrbakeorder/refs/heads/main/public/jrb-text.png" alt="Joyride Baking Co." style="display:block; margin:auto; width:70%;"/>
     <div id="soldOutMessage" class="hidden" style="text-align: center; padding: 40px 20px;">
-      <h2 style="color: #8b5e3c;">We're currently sold out!</h2>
+      <h2 style="color: #8b5e3c;">Orders are currently closed!</h2>
       <p>Our ovens are resting. Please check back soon for our next bake.</p>
       <p>Follow us for updates or contact Amanda at <a href="mailto:order@joyridebaking.com">order@joyridebaking.com</a>.</p>
     </div>
@@ -73,13 +73,13 @@ If you request slicing but do not want all loaves in your order sliced, please s
 
       <!-- SUBMIT -->
 
+      <div id="errorMessage" class="hidden" style="display: none; background-color: #ffebee; color: #c62828; padding: 15px; border: 1px solid #ef5350; border-radius: 5px; margin-bottom: 20px;">
+    </div>
+
       <button type="submit" style="padding:14px;">
         Submit Order
       </button>
     </form>
-
-    <div id="errorMessage" class="hidden" style="display: none; background-color: #ffebee; color: #c62828; padding: 15px; border: 1px solid #ef5350; border-radius: 5px; margin-bottom: 20px;">
-    </div>
 
     <div id="pickupInfo" class="section">
   <p id="pickupText">Loading pickup details...</p>
@@ -87,12 +87,6 @@ If you request slicing but do not want all loaves in your order sliced, please s
 
     <div id="orderTotal" class="order-total">
       Total: <strong>$0.00</strong>
-    </div>
-
-    <!-- SUCCESS MESSAGE -->
-
-    <div id="successMessage" class="hidden">
-      Order submitted successfully!
     </div>
 
   </div>
