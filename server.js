@@ -36,7 +36,7 @@ setInterval(() => {
             recentOrdersCache.delete(key);
         }
     }
-}, 300000);
+}, 60000);
 
 /**
  * Helper: Encode email to Base64 (Gmail API Requirement)
