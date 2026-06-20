@@ -256,6 +256,16 @@ const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
 
             const encodedMail = createEncodedEmail(email, `🍞 Order Confirmation: #${orderNumber}`, htmlContent);
 
+            gmail.users.messages.send({
+                userId: 'me',
+                requestBody: { raw: encodedMail }
+            }).catch(mailErr => console.error('[BACKGROUND EMAIL ERROR]:', mailErr.message));
+
+        } catch (templateErr) {
+            console.error('[TEMPLATE OR EMAIL GEN ERROR]:', templateErr.message);
+            emailStatus = "FAILED_TO_SEND";
+        }
+
         // --- LOG ORDER TO SPREADSHEET ---
         const orderRow = [
             orderNumber,
@@ -272,11 +282,6 @@ const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
             notes,
             ...breadQuantities
         ];
-
-        gmail.users.messages.send({
-            userId: 'me',
-            requestBody: { raw: encodedMail }
-        }).catch(mailErr => console.error('[BACKGROUND EMAIL ERROR]:', mailErr.message));
 
         sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
@@ -299,7 +304,6 @@ app.get('/oauth2callback', async (req, res) => {
     res.redirect('/'); // Send the user back to the bakery home page
 });
 
-const port = process.env.PORT || 8080;
 app.listen(port, () => {
     console.log(`Bakery server listening on port ${port}`);
 });
