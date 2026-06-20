@@ -27,6 +27,16 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const MASTER_SHEET = 'Master Inventory';
 const INVENTORY_SHEET = 'Inventory';
 const ORDERS_SHEET = 'Orders';
+const recentOrdersCache = new Map();
+
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of recentOrdersCache.entries()) {
+        if (now - timestamp > 60000) { // Clear anything older than 1 minute
+            recentOrdersCache.delete(key);
+        }
+    }
+}, 300000);
 
 /**
  * Helper: Encode email to Base64 (Gmail API Requirement)
@@ -113,9 +123,33 @@ app.post('/order', async (req, res) => {
     try {
         const { firstName, lastName, email, phone, items, slicing, payment, notes } = req.body;
 
+        // 👇 NEW: CREATE A UNIQUE FINGERPRINT FOR THIS EXACT TRANSACTION
+        // Calculates a mini summary total to ensure unique identity
+        const itemFingerprint = items.map(i => `${i.item}-${i.quantity}`).join('|');
+        const orderFingerprint = `${email.toLowerCase().trim()}_${firstName.trim()}_${itemFingerprint}`;
+
+        // 👇 NEW: CHECK IF TRANSACTION WAS ALREADY PROCESSED IN THE LAST 30 SECONDS
+        if (recentOrdersCache.has(orderFingerprint)) {
+            const cachedData = recentOrdersCache.get(orderFingerprint);
+            console.log(`[DEDUPLICATION] Blocked duplicate retry for: ${orderFingerprint}`);
+
+            // If it's currently processing or finished, return a clean successful mock response
+            return res.json({
+                success: true,
+                orderNumber: cachedData.orderNumber || "DUPLICATE_REJECTED",
+                isDuplicate: true
+            });
+        }
+
+        // Reserve this fingerprint in cache immediately with a temporary placeholder
+        recentOrdersCache.set(orderFingerprint, { timestamp: Date.now(), orderNumber: null });
+
         // --- GENERATE TIMESTAMP ORDER ID (MMDDHHMMSS) ---
         const now = new Date();
         const orderNumber = `${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+
+        // Save the real generated order number to our cache row so retries can read it if needed
+        recentOrdersCache.set(orderFingerprint, { timestamp: Date.now(), orderNumber: orderNumber });
 
         // --- FETCH STOCK FOR UPDATES ---
         const [invRes, pickupRes] = await Promise.all([
@@ -222,15 +256,6 @@ const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
 
             const encodedMail = createEncodedEmail(email, `🍞 Order Confirmation: #${orderNumber}`, htmlContent);
 
-            await gmail.users.messages.send({
-                userId: 'me',
-                requestBody: { raw: encodedMail }
-            });
-        } catch (mailErr) {
-            console.error('Email Failed:', mailErr.message);
-            emailStatus = "FAILED";
-        }
-
         // --- LOG ORDER TO SPREADSHEET ---
         const orderRow = [
             orderNumber,
@@ -248,12 +273,17 @@ const pickupAfterHoursText = pickupRows[2] ? pickupRows[2][0] : "";
             ...breadQuantities
         ];
 
-        await sheets.spreadsheets.values.append({
+        gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw: encodedMail }
+        }).catch(mailErr => console.error('[BACKGROUND EMAIL ERROR]:', mailErr.message));
+
+        sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
             range: `${ORDERS_SHEET}!A:A`,
             valueInputOption: 'USER_ENTERED',
             requestBody: { values: [orderRow] }
-        });
+        }).catch(err => console.error("BACKGROUND SHEETS ERROR:", err));
 
         res.json({ success: true, orderNumber });
 
