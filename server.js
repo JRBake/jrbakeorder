@@ -304,6 +304,6 @@ app.get('/oauth2callback', async (req, res) => {
     res.redirect('/'); // Send the user back to the bakery home page
 });
 
-app.listen(port, () => {
-    console.log(`Bakery server listening on port ${port}`);
+app.listen(PORT, () => {
+    console.log(`Bakery server listening on port ${PORT}`);
 });
