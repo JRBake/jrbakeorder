@@ -1,10 +1,11 @@
 <div style="font-size:1em; font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-    <a target="_blank" href="https://www.joyridebaking.com"><img src="https://raw.githubusercontent.com/JRBake/jrbakeorder/refs/heads/main/public/jrb-text.png" width=300px alt="Joyride Baking Co."/></a>
+    <a target="_blank" href="https://www.joyridebaking.com"><img src="https://raw.githubusercontent.com/JRBake/jrbakeorder/refs/heads/main/public/pictures/logo-small.png" width=75px alt="Joyride Logo"></a>
+    <a target="_blank" href="https://www.joyridebaking.com"><img src="https://raw.githubusercontent.com/JRBake/jrbakeorder/refs/heads/main/public/jrb-text.png" width=300px alt="Joyride Baking Co."></a>
     <p>Hi {{firstName}}! Thank you for your order from Joyride Baking!</p><p><strong>Pickup is {{pickupDate}} from {{pickupHours}} at 183 Cumberland Road</strong> (our home bakery is located in the Cumberland neighborhood off of S. 6th St Ext.--look for the fresh bread sign at the mailbox).</p><p><strong>After-hours pickup is available from {{pickupAfterHours}}--reply to this email to let me know to put your bread in the bin for you!</strong></p>
 <p>Please note that all sales are final. If you are unable to pick up your order, consider sharing the love of good bread and having a friend or neighbor pick up in your place. If you have any questions or concerns, please reach out to Amanda at <a href="mailto:order@joyridebaking.com">order@joyridebaking.com</a>. Thank you for your business, and thank you for being part of our local bread community.</p>
 <p>Cash, check, and Zelle payments are accepted at pickup. If you are paying by Venmo or Cash App, please submit your payment.</p>
-<a target="_blank" href="https://venmo.com/u/joyridebaking"><h2>Pay now on Venmo</h2></a>
-<a target="_blank" href="https://cash.app/$joyridebaking"><h2>Pay now on Cash App</h2></a>
+<a target="_blank" href="https://venmo.com/u/joyridebaking?txn=pay&amount{{total}}"><h2>Pay now on Venmo</h2></a>
+<a target="_blank" href="https://cash.app/$joyridebaking/{{total}}"><h2>Pay now on Cash App</h2></a>
 
     <div style="background-color: #fdfaf7; padding: 20px; border-radius: 8px; border: 1px solid #f0e6dd; margin: 20px 0;">
         <h2>Receipt</h2>
