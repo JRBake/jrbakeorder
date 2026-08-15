@@ -40,6 +40,7 @@ const MASTER_SHEET = 'Master Inventory';
 const INVENTORY_SHEET = 'Inventory';
 const ORDERS_SHEET = 'Orders';
 const recentOrdersCache = new Map();
+const STANDING_ORDERS_SHEET = 'Standing Orders';
 
 setInterval(() => {
     const now = Date.now();
@@ -314,6 +315,137 @@ app.get('/oauth2callback', async (req, res) => {
     const { code } = req.query; // This is the "key" Google sends back
     // ... logic to save the token ...
     res.redirect('/'); // Send the user back to the bakery home page
+});
+
+/**
+ * ADMIN: Fetch Standing Orders List
+ */
+app.get('/api/admin/standing-orders', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${STANDING_ORDERS_SHEET}!A2:Z`
+        });
+
+        const rows = response.data.values || [];
+
+        // Maps rows assuming identical column layout as Orders Sheet:
+        // Col A (0): Order Number / Customer ID
+        // Col B (1): Date Created / Frequency
+        // Col C (2): Last Receipt Sent Status
+        // Col D (3): First Name
+        // Col E (4): Last Name
+        // Col F (5): Phone
+        // Col G (6): Email
+        // Col H (7): Payment Method
+        // Col I (8): Paid Flag
+        // Col J (9): Total Price
+        // Col K (10): Slicing Option
+        // Col L (11): Notes
+        const standingOrders = rows.map((row, index) => ({
+            rowIndex: index + 2, // 1-indexed sheet row number
+            id: row[0] || `SO-${index + 1}`,
+            receiptStatus: row[2] || 'Never Sent',
+            firstName: row[3] || '',
+            lastName: row[4] || '',
+            phone: row[5] || '',
+            email: row[6] || '',
+            payment: row[7] || 'Cash',
+            total: Number(row[9]) || 0,
+            slicing: row[10] || 'No',
+            notes: row[11] || '',
+            // Stores item breakdown columns (Column M onwards)
+            rawItems: row.slice(12)
+        }));
+
+        res.json({ standingOrders });
+    } catch (err) {
+        console.error('Standing Orders Sync Error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch standing orders' });
+    }
+});
+
+/**
+ * ADMIN: Send Standing Order Receipt
+ */
+app.post('/api/admin/send-standing-receipt', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { order, pickupDateText, pickupHoursText } = req.body;
+
+        // 1. Generate new timestamp receipt ID
+        const now = new Date();
+        const receiptNumber = `${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+
+        // 2. Fetch Master Inventory item titles to format the receipt table
+        const masterRes = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${INVENTORY_SHEET}!A2:A`
+        });
+        const inventoryNames = (masterRes.data.values || []).map(r => r[0]);
+
+        // 3. Build HTML receipt items table from raw spreadsheet quantities
+        let receiptRowsHtml = '';
+        if (order.rawItems && order.rawItems.length > 0) {
+            order.rawItems.forEach((qty, idx) => {
+                if (qty && Number(qty) > 0 && inventoryNames[idx]) {
+                    receiptRowsHtml += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 8px;">${inventoryNames[idx]}</td>
+                            <td style="padding: 8px; text-align: center;">${qty}</td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        // 4. Populate email template
+        const templatePath = path.join(__dirname, 'emailTemplate.html');
+        let htmlContent = fs.readFileSync(templatePath, 'utf8');
+
+        htmlContent = htmlContent
+            .replace(/{{firstName}}/g, order.firstName)
+            .replace(/{{orderNumber}}/g, `SO-${receiptNumber}`)
+            .replace(/{{itemizedReceipt}}/g, receiptRowsHtml || '<tr><td colspan="2">Standing Order Bread Subscription</td></tr>')
+            .replace(/{{total}}/g, Number(order.total).toFixed(2))
+            .replace(/{{pickupDate}}/g, pickupDateText || "Per Standing Order Schedule")
+            .replace(/{{pickupHours}}/g, pickupHoursText || "Standard Pickup Hours")
+            .replace(/{{pickupAfterHours}}/g, "See confirmation details")
+            .replace(/{{payment}}/g, order.payment)
+            .replace(/{{slicing}}/g, order.slicing)
+            .replace(/{{notes}}/g, order.notes || "Standing Order Subscription");
+
+        const encodedMail = createEncodedEmail(order.email, `🍞 Standing Order Receipt: #SO-${receiptNumber}`, htmlContent);
+
+        // 5. Send Email via Gmail API
+        await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw: encodedMail }
+        });
+
+        // 6. Notate on Standing Orders sheet in Column C (Status) that receipt was sent
+        const sentTimestamp = `Sent: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${STANDING_ORDERS_SHEET}!C${order.rowIndex}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [[sentTimestamp]] }
+        });
+
+        res.json({ success: true, timestamp: sentTimestamp, receiptNumber });
+    } catch (err) {
+        console.error('Standing Order Receipt Error:', err.message);
+        res.status(500).json({ error: 'Failed to send standing order receipt' });
+    }
 });
 
 app.listen(PORT, () => {
